@@ -1,25 +1,43 @@
-import { todo } from "node:test";
-import React from "react";
 import { create } from "zustand";
+import { nanoid } from "nanoid";
 
 //CRUD app, it is a create read update and delete
+interface Todo {
+  id: string;
+  description: string;
+}
 
-type State = {
-  count: number;
-  todos: string[];
-  // status: boolean;
-};
+interface TodoStore {
+  todos: Todo[];
+  addTodo: (description: string) => void;
+  removeTodo: (id: string) => void;
+  updateTodo: (id: string, description: string) => void;
+}
 
-type Action = {
-  addTodo: (todos: State["todos"], count: State["count"]) => void;
-  // delTodo: (count: State["count"], todos: State["todos"]) => void;
-};
-
-const useTodoStore = create<State & Action>((set) => ({
+const useTodoStore = create<TodoStore>()((set) => ({
   todos: [],
-  count: 1,
-  addTodo: (todos, count) =>
-    set(() => ({ ["todos"]: [...todos], count: (count = count + 1) })),
+  addTodo: (description: string) => {
+    set((state) => ({
+      todos: [
+        ...state.todos,
+        {
+          id: nanoid(),
+          description,
+        } as Todo,
+      ],
+    }));
+  },
+  removeTodo: (id: string) => {
+    set((state) => ({
+      todos: state.todos.filter((todo) => todo.id !== id),
+    }));
+  },
+  updateTodo: (id: string, description: string) => {
+    set((state) => ({
+      todos: state.todos.map((todo) =>
+        todo.id === id ? { ...todo, description } : todo
+      ),
+    }));
+  },
 }));
-
 export default useTodoStore;
